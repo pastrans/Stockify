@@ -9,3 +9,8 @@ export * from './auth/reset-password.dto';
 export * from './shared/pagination.dto';
 
 export * from './shared/soft-delete-filter.dto';
+
+export * from './attribute/create-attribute.dto';
+export * from './attribute/update-attribute.dto';
+export * from './attribute-value/create-attribute-value.dto';
+export * from './attribute-value/update-attribute-value.dto';

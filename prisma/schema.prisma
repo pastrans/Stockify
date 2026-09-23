@@ -21,3 +21,40 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+enum AttributeDisplayType {
+  RADIO  // Botones de opción (Odoo default)
+  SELECT // Lista desplegable
+  COLOR  // Muestra de color (swatches con código HEX)
+  PILLS  // Botones tipo pastilla/etiqueta
+}
+
+model Attribute {
+  id          Int                  @id @default(autoincrement())
+  name        String               @unique
+  displayType AttributeDisplayType @default(RADIO)
+  sequence    Int                  @default(0) // Orden del atributo en el SKU matricial
+  available   Boolean              @default(true)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  values      AttributeValue[]
+
+  @@index([sequence])
+}
+
+model AttributeValue {
+  id          Int       @id @default(autoincrement())
+  name        String    // Ej: "Rojo", "XL", "Algodón"
+  htmlColor   String?   // Código HEX (Ej: "#FF0000") requerido si displayType == COLOR
+  sequence    Int       @default(0)
+  available   Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  attributeId Int
+  attribute   Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  @@unique([attributeId, name]) // Evita duplicar el mismo valor dentro del mismo atributo
+  @@index([attributeId, sequence])
+}
