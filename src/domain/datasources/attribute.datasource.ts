@@ -1,12 +1,11 @@
 import { AttributeEntity } from '../entities/attribute.entity';
-import { AttributeValueEntity } from '../entities';
-import { UpdateAttributeValueDto, 
-        CreateAttributeDto, 
-        UpdateAttributeDto, 
-        PaginationDto, 
-        SoftDeleteFilterDto, 
-        CreateAttributeValueDto} 
-from '../dtos';
+import { AttributeValueEntity } from '../entities/attribute-value.entity';
+import { CreateAttributeDto } from '../dtos/attribute/create-attribute.dto';
+import { UpdateAttributeDto } from '../dtos/attribute/update-attribute.dto';
+import { CreateAttributeValueDto } from '../dtos/attribute-value/create-attribute-value.dto';
+import { UpdateAttributeValueDto } from '../dtos/attribute-value/update-attribute-value.dto';
+import { PaginationDto } from '../dtos/shared/pagination.dto';
+import { SoftDeleteFilterDto } from '../dtos/shared/soft-delete-filter.dto';
 
 export interface PaginatedResult<T> {
   page: number;
@@ -30,7 +29,6 @@ export abstract class AttributeDatasource {
   abstract updateById(updateAttributeDto: UpdateAttributeDto): Promise<AttributeEntity>;
   abstract deleteById(id: number): Promise<AttributeEntity>;
 
-  // Métodos específicos para AttributeValue
   abstract addValue(attributeId: number, dto: CreateAttributeValueDto): Promise<AttributeValueEntity>;
   abstract updateValue(dto: UpdateAttributeValueDto): Promise<AttributeValueEntity>;
   abstract deleteValue(valueId: number): Promise<AttributeValueEntity>;

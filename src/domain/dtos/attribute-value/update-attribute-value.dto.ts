@@ -1,36 +1,32 @@
 export class UpdateAttributeValueDto {
   private constructor(
     public readonly id: number,
-    public readonly name?: string,
-    public readonly htmlColor?: string | null,
+    public readonly valueName?: string,
+    public readonly shortName?: string,
+    public readonly colorHex?: string | null,
     public readonly sequence?: number,
     public readonly available?: boolean,
   ) {}
 
   get values() {
     const returnObj: { [key: string]: any } = {};
-    if (this.name !== undefined) returnObj.name = this.name.trim();
-    if (this.htmlColor !== undefined) returnObj.htmlColor = this.htmlColor ? this.htmlColor.trim() : null;
+    if (this.valueName !== undefined) returnObj.valueName = this.valueName.trim();
+    if (this.shortName !== undefined) returnObj.shortName = this.shortName.trim().toUpperCase();
+    if (this.colorHex !== undefined) returnObj.colorHex = this.colorHex ? this.colorHex.trim() : null;
     if (this.sequence !== undefined) returnObj.sequence = this.sequence;
     if (this.available !== undefined) returnObj.available = this.available;
     return returnObj;
   }
 
   static create(props: { [key: string]: any }): [string | undefined, UpdateAttributeValueDto | undefined] {
-    const { id, name, htmlColor, sequence, available } = props;
+    const { id, valueName, shortName, colorHex, sequence, available } = props;
 
     if (!id || isNaN(Number(id))) return ['id must be a valid number', undefined];
 
-    if (name !== undefined) {
-      if (typeof name !== 'string' || name.trim().length === 0) {
-        return ['Name must be a non-empty string', undefined];
-      }
-    }
-
-    if (htmlColor !== undefined && htmlColor !== null && htmlColor !== '') {
+    if (colorHex !== undefined && colorHex !== null && colorHex !== '') {
       const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-      if (!hexRegex.test(htmlColor)) {
-        return ['htmlColor must be a valid HEX color code', undefined];
+      if (!hexRegex.test(colorHex)) {
+        return ['colorHex must be a valid HEX color code (e.g., #FFFFFF)', undefined];
       }
     }
 
@@ -49,8 +45,9 @@ export class UpdateAttributeValueDto {
       undefined,
       new UpdateAttributeValueDto(
         Number(id),
-        name,
-        htmlColor,
+        valueName,
+        shortName,
+        colorHex,
         parsedSequence,
         parsedAvailable
       ),

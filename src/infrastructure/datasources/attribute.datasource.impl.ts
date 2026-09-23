@@ -16,45 +16,46 @@ import {
 export class AttributeDatasourceImpl implements AttributeDatasource {
 
   async create(createAttributeDto: CreateAttributeDto): Promise<AttributeEntity> {
-    try {
-      // 1. Objeto base con las propiedades obligatorias
-      const data: Prisma.AttributeCreateInput = {
-        name: createAttributeDto.name,
-        displayType: createAttributeDto.displayType,
-        sequence: createAttributeDto.sequence,
+  try {
+    const data: Prisma.AttributeCreateInput = {
+      name: createAttributeDto.name,
+      sequence: createAttributeDto.sequence,
+      displayType: createAttributeDto.displayType,
+      variantCreation: createAttributeDto.variantCreation,
+    };
+
+    if (createAttributeDto.values.length > 0) {
+      data.values = {
+        create: createAttributeDto.values.map((v, index) => ({
+          valueName: v.valueName,
+          shortName: v.shortName,
+          colorHex: v.colorHex ?? null,
+          sequence: v.sequence ?? index,
+        })),
       };
-
-      // 2. Solo agregar 'values' si realmente vienen valores (evita asignar undefined)
-      if (createAttributeDto.values.length > 0) {
-        data.values = {
-          create: createAttributeDto.values.map((v, index) => ({
-            name: v.name,
-            htmlColor: v.htmlColor ?? null,
-            sequence: v.sequence ?? index,
-          })),
-        };
-      }
-
-      // 3. Ejecución atómica en Prisma
-      const attribute = await prisma.attribute.create({
-        data,
-        include: {
-          values: {
-            where: { available: true },
-            orderBy: { sequence: 'asc' },
-          },
-        },
-      });
-
-      return AttributeEntity.fromObject(attribute);
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        throw CustomError.badRequest('Attribute or one of its values already exists');
-      }
-      throw CustomError.internalServer('Error creating attribute');
     }
-  }
 
+    const attribute = await prisma.attribute.create({
+      data,
+      include: {
+        values: {
+          where: { available: true },
+          orderBy: { sequence: 'asc' },
+        },
+      },
+    });
+
+    return AttributeEntity.fromObject({
+      ...attribute,
+      isDeletable: true, // Recién creado no tiene dependencias
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      throw CustomError.badRequest('Attribute name or value shortName/name already exists');
+    }
+    throw CustomError.internalServer('Error creating attribute');
+  }
+}
   async getAll(options: AttributeQueryOptions): Promise<PaginatedResult<AttributeEntity>> {
     const { pagination, softDelete } = options;
     const { page, limit } = pagination;
@@ -162,8 +163,9 @@ export class AttributeDatasourceImpl implements AttributeDatasource {
       const value = await prisma.attributeValue.create({
         data: {
           attributeId,
-          name: dto.name,
-          htmlColor: dto.htmlColor ?? null,
+          valueName: dto.valueName,
+          shortName: dto.shortName,
+          colorHex: dto.colorHex ?? null,
           sequence: dto.sequence,
         },
       });
@@ -171,7 +173,7 @@ export class AttributeDatasourceImpl implements AttributeDatasource {
       return AttributeValueEntity.fromObject(value);
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        throw CustomError.badRequest(`Value "${dto.name}" already exists for this attribute`);
+        throw CustomError.badRequest(`Value "${dto.valueName}" already exists for this attribute`);
       }
       throw CustomError.internalServer('Error adding attribute value');
     }

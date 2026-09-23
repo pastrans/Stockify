@@ -1,27 +1,43 @@
 export class CreateAttributeValueDto {
   private constructor(
     public readonly attributeId: number,
-    public readonly name: string,
+    public readonly valueName: string,
+    public readonly shortName: string,
     public readonly sequence: number,
-    public readonly htmlColor?: string,
+    public readonly colorHex?: string,
   ) {}
 
   static create(props: { [key: string]: any }): [string | undefined, CreateAttributeValueDto | undefined] {
-    const { attributeId, name, sequence = 0, htmlColor } = props;
+    const { attributeId, valueName, shortName, sequence = 0, colorHex } = props;
 
-    if (!attributeId || isNaN(Number(attributeId))) return ['attributeId must be a valid number', undefined];
-    if (!name || typeof name !== 'string' || name.trim().length === 0) return ['Name is required', undefined];
+    if (!attributeId || isNaN(Number(attributeId))) {
+      return ['attributeId must be a valid number', undefined];
+    }
 
-    if (htmlColor !== undefined && htmlColor !== null && htmlColor !== '') {
+    if (!valueName || typeof valueName !== 'string' || valueName.trim().length === 0) {
+      return ['valueName is required', undefined];
+    }
+
+    if (!shortName || typeof shortName !== 'string' || shortName.trim().length === 0) {
+      return ['shortName is required for SKU generation (e.g., "XL", "NEG")', undefined];
+    }
+
+    if (colorHex) {
       const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-      if (!hexRegex.test(htmlColor)) {
-        return ['htmlColor must be a valid HEX color code (e.g., #FFFFFF or #FFF)', undefined];
+      if (!hexRegex.test(colorHex)) {
+        return ['colorHex must be a valid HEX color code (e.g., #FFFFFF)', undefined];
       }
     }
 
     return [
       undefined,
-      new CreateAttributeValueDto(Number(attributeId), name.trim(), Number(sequence) || 0, htmlColor || undefined),
+      new CreateAttributeValueDto(
+        Number(attributeId),
+        valueName.trim(),
+        shortName.trim().toUpperCase(),
+        Number(sequence) || 0,
+        colorHex ? colorHex.trim() : undefined
+      ),
     ];
   }
 }

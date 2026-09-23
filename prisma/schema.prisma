@@ -22,31 +22,39 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
-enum AttributeDisplayType {
-  RADIO  // Botones de opción (Odoo default)
-  SELECT // Lista desplegable
-  COLOR  // Muestra de color (swatches con código HEX)
-  PILLS  // Botones tipo pastilla/etiqueta
+enum DisplayType {
+  select
+  pills
+  radio
+  color
+}
+
+enum VariantCreation {
+  instantly
+  dynamically
+  never
 }
 
 model Attribute {
-  id          Int                  @id @default(autoincrement())
-  name        String               @unique
-  displayType AttributeDisplayType @default(RADIO)
-  sequence    Int                  @default(0) // Orden del atributo en el SKU matricial
-  available   Boolean              @default(true)
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
+  id              Int             @id @default(autoincrement())
+  name            String          @unique
+  sequence        Int             @default(0)
+  displayType     DisplayType     @default(radio)
+  variantCreation VariantCreation @default(instantly)
+  available       Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
-  values      AttributeValue[]
+  values          AttributeValue[]
 
   @@index([sequence])
 }
 
 model AttributeValue {
   id          Int       @id @default(autoincrement())
-  name        String    // Ej: "Rojo", "XL", "Algodón"
-  htmlColor   String?   // Código HEX (Ej: "#FF0000") requerido si displayType == COLOR
+  valueName   String
+  shortName   String    // Código compacto para ensamble de SKU (ej. "AZM", "XL")
+  colorHex    String?   // Código HEX (ej. "#000080") si displayType == color
   sequence    Int       @default(0)
   available   Boolean   @default(true)
   createdAt   DateTime  @default(now())
@@ -55,6 +63,7 @@ model AttributeValue {
   attributeId Int
   attribute   Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
 
-  @@unique([attributeId, name]) // Evita duplicar el mismo valor dentro del mismo atributo
+  @@unique([attributeId, valueName])
+  @@unique([attributeId, shortName])
   @@index([attributeId, sequence])
 }

@@ -1,31 +1,47 @@
 export class AttributeValueEntity {
   constructor(
-    public id: number,
-    public name: string,
-    public sequence: number,
-    public attributeId: number,
-    public available: boolean,
-    public createdAt: Date,
-    public updatedAt: Date,
-    public htmlColor?: string | null,
+    public readonly id: number,
+    public readonly valueName: string,
+    public readonly shortName: string,
+    public readonly sequence: number,
+    public readonly attributeId: number,
+    public readonly available: boolean,
+    public readonly isDeletable: boolean,
+    public readonly createdAt: Date,
+    public readonly updatedAt: Date,
+    public readonly colorHex?: string | null,
   ) {}
 
   public static fromObject(object: { [key: string]: any }): AttributeValueEntity {
-    const { id, name, sequence, attributeId, available, createdAt, updatedAt, htmlColor } = object;
+    const {
+      id,
+      valueName,
+      shortName,
+      sequence = 0,
+      attributeId,
+      available = true,
+      isDeletable = true,
+      colorHex,
+      createdAt,
+      updatedAt,
+    } = object;
 
-    if (!id) throw 'Missing value id';
-    if (!name) throw 'Missing value name';
-    if (!attributeId) throw 'Missing attributeId';
+    if (!id || isNaN(Number(id))) throw 'Missing or invalid value id';
+    if (!valueName) throw 'Missing valueName';
+    if (!shortName) throw 'Missing shortName for SKU assembly';
+    if (!attributeId || isNaN(Number(attributeId))) throw 'Missing or invalid attributeId';
 
     return new AttributeValueEntity(
       Number(id),
-      name,
-      sequence ?? 0,
+      String(valueName).trim(),
+      String(shortName).trim().toUpperCase(),
+      Number(sequence),
       Number(attributeId),
-      available ?? true,
-      createdAt,
-      updatedAt,
-      htmlColor || null
+      Boolean(available),
+      Boolean(isDeletable),
+      createdAt ? new Date(createdAt) : new Date(),
+      updatedAt ? new Date(updatedAt) : new Date(),
+      colorHex || null
     );
   }
 }
